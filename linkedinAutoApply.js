@@ -312,7 +312,7 @@ console.log("Entered function handleEasyApplyPopup");
 
 async function checkBlockListCompany() {
     const blocklistCompanies = ['cognet', 'advance aero', 'jobot', 'flexton', 'infovision'];
-    // Get the company name for the current job card
+    
     const companyElement = document.querySelector('.job-details-jobs-unified-top-card__company-name a');
     const companyName = companyElement ? companyElement.textContent.toLowerCase().replace(/\s+/g, '').trim() : '';
 
