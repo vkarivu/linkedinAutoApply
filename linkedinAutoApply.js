@@ -15,9 +15,113 @@
     window.stopJobClicks = false;
 
     // Sleep function using Promises
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+
+
+
+    function findFirstVisibleElement() {
+    // List of element selectors
+    const elements = [
+        "[id*='dialog-label-']",  // Dialog label elements
+        "[id*='jobs-apply-header']",  // Jobs apply header
+        "[class*='artdeco-modal__content']",  // Modal content
+        "[id='job-details'] > [class='job-details-module__content']",  // Job details content
+        "[class='jobs-search-results-list__title-heading']"  // Job search results list title
+    ];
+
+    // Iterate through the list and return the first element that is present on the screen
+    for (let selector of elements) {
+        const element = document.querySelector(selector);
+        if (element) {
+            console.log(`Found visible element: ${selector}`);
+            return element;  // Return the first found element
+        }
     }
+
+    // If no element is found, return null
+    console.log("No elements found on the current screen.");
+    return null;
+}
+
+
+
+    function randomScroll() {
+        console.log("Rondom Scroll happening");
+    const x = Math.floor(Math.random() * window.innerWidth);
+    const y = Math.floor(Math.random() * window.innerHeight);
+    window.scrollBy(x, y);
+}
+
+
+    async function clickElement() {
+        console.log("Rondom Click happening");
+        let element = findFirstVisibleElement()
+    const rect = element.getBoundingClientRect();
+    const x = rect.left + Math.random() * rect.width;
+    const y = rect.top + Math.random() * rect.height;
+    const clickEvent = new MouseEvent('click', {
+        clientX: x,
+        clientY: y,
+        bubbles: true,
+        cancelable: true
+    });
+    element.dispatchEvent(clickEvent);
+    }
+
+
+    function randomHover() {
+        console.log("Rondom Hover happening");
+        let element = findFirstVisibleElement()
+    const hoverEvent = new MouseEvent('mouseover', {
+        bubbles: true,
+        cancelable: true
+    });
+    element.dispatchEvent(hoverEvent);
+}
+
+
+    async function randomPause() {
+        console.log("Rondom Pause happening");
+    const shouldPause = Math.random() > 0.9; // 10% chance of pausing
+    if (shouldPause) {
+        console.log("Taking a random pause.");
+        const ms1 = Math.floor(Math.random() * 3000)+2000
+        return new Promise(resolve => setTimeout(resolve, ms1));
+    }
+}
+
+
+    const actions = [
+    randomScroll,
+    clickElement,
+    randomHover,
+    randomPause
+];
+
+// Function to choose a random action
+async function chooseRandomAction() {
+    const randomIndex = Math.floor(Math.random() * actions.length);
+    const randomAction = actions[randomIndex];
+    console.log(`Executing action at index ${randomIndex}`);
+    await randomAction();
+}
+
+
+      function sleep(ms) {
+        chooseRandomAction()
+        chooseRandomAction()
+        const ms1 = Math.floor(Math.random() * 3000)+2000
+        return new Promise(resolve => setTimeout(resolve, ms1));
+    }
+
+
+
+
+
+// Use the function where necessary
+chooseRandomAction();
+
+
+
 
     // Function to handle the Easy Apply popup process
     async function handleEasyApplyPopup() {
@@ -57,7 +161,7 @@ console.log("Entered function handleEasyApplyPopup");
                         await sleep(3000); // Wait before trying again
 
                         // If alert message appears more than 3 times, cancel the current application
-                        if (alertCount > 3) {
+                        if (alertCount > 1) {
                             console.log("Alert appeared more than 3 times, canceling the current application.");
                             saveCrntApplication();
                             return;
@@ -234,7 +338,8 @@ async function checkBlockListCompany() {
 
     async function checkJobDescription() {
     // Define the list of keywords to search for in the job description
-    const keywordList = ['java', 'springboot'];
+    //const keywordList = ['java', 'springboot'];
+         const keywordList = ['j'];
 
     // Get the job description element
     const jobDescriptionElement = document.querySelector('.jobs-description__container');
