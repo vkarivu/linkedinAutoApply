@@ -1,0 +1,122 @@
+
+
+
+// ==UserScript==
+// @name         LinkedIn Auto Scroll and Extract
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Auto-scroll LinkedIn page and extract details for Google Sheets
+// @author       You
+// @match        https://www.linkedin.com/search/results/content/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=linkedin.com
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Make scrollInterval a global variable
+    window.scrollInterval = null;
+
+    // Function to scroll to the bottom of the page
+    
+
+    // Function to click on "Show more results" button if it's visible
+    window.clickShowMore = function() {
+        clickLoadMorePosts();
+        const showMoreBtn = document.querySelector('[class="display-flex p5"]>[id*="ember"] > [class="artdeco-button__text"]');
+        if (showMoreBtn && showMoreBtn.parentElement.innerText.includes("Show more results")) {
+            const style = window.getComputedStyle(showMoreBtn.parentElement);
+            const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && showMoreBtn.parentElement.offsetHeight > 0;
+            if (isVisible) {
+                showMoreBtn.parentElement.click();
+            }
+        }
+    };
+
+
+
+    async function clickLoadMorePosts() {
+    // Get all div elements inside the search-results-container that contain 'display-flex' in their class list
+    const flexDivs = document.querySelectorAll('div.search-results-container div[class*="display-flex"]');
+
+    // Get the last div with 'display-flex' in its class list
+    const lastFlexDiv = flexDivs[flexDivs.length - 1];
+
+    // Check if the last flex div contains the span for the "Load more posts" button
+    if (lastFlexDiv) {
+        const loadMoreButton = lastFlexDiv.querySelector('span.artdeco-button__text');
+
+        // Check if the button exists and contains "Load more posts" text
+        if (loadMoreButton && loadMoreButton.innerText.includes("Load more posts")) {
+            loadMoreButton.parentElement.click();
+            console.log("Clicked on Load more posts button.");
+        } else {
+            console.log("Load more posts button not found in the last div with display-flex.");
+        }
+    } else {
+        console.log("No div with display-flex found inside search-results-container.");
+    }
+}
+
+
+
+
+    window.scrollToBottom = function() {
+        window.clickShowMore();
+        window.scrollTo(0, document.body.scrollHeight);
+    };
+
+    // Function to start auto-scrolling
+    window.startScrolling = function() {
+        window.clickShowMore();
+        setTimeout(() => {
+            window.scrollInterval = setInterval(window.scrollToBottom, 1500);
+        }, 2000); // Wait 2 seconds before starting to scroll
+    };
+
+    // Function to stop auto-scrolling
+    window.stopScrolling = function() {
+        clearInterval(window.scrollInterval);
+        console.log("Auto-scrolling stopped immediately.");
+    };
+
+    // Function to extract details for Google Sheets
+    window.extractDetailsForSheets = function() {
+        // Get all the span elements with dir="ltr"
+        const spans = document.querySelectorAll('span[dir="ltr"]');
+        const results = [];
+
+        // Regular expressions
+        const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi;
+        const yearOrExperienceRegex = /.*([yY]ears?|[eE]xperience).*/g;
+        const visaLineRegex = /.*\b(Visa|H1B|GC|GC-EAD|E3|TN|USC)\b.*/gi;
+        const standaloneBenchRegex = /(?:\s|^)Bench\b/i;
+
+        // Iterate through each span and search for email addresses, lines containing 'years' or 'experience', and visa related lines
+        spans.forEach(span => {
+            const spanText = span.innerText;
+
+            // Ignore the span entirely if it contains standalone 'Bench'
+            if (!standaloneBenchRegex.test(spanText)) {
+                const foundEmails = spanText.match(emailRegex);
+                const yearOrExperienceLines = spanText.match(yearOrExperienceRegex) || ["No years/experience mentioned"];
+                const visaLines = spanText.split('\n').filter(line => visaLineRegex.test(line) && !line.trim().startsWith('#')) || ["No visa info mentioned"];
+
+                if (foundEmails) {
+                    // Concatenate all lines containing 'years' or 'experience' and visa info into separate strings separated by a semicolon
+                    let yearOrExperienceText = yearOrExperienceLines.join("; ");
+                    let visaText = visaLines.join("; ");
+                    // Format for spreadsheet: email \t years/experience-related lines \t visa-related lines
+                    foundEmails.forEach(email => {
+                        results.push(`${email}\t${yearOrExperienceText}\t${visaText}`);
+                    });
+                }
+            }
+        });
+
+        console.log(results.join('\n'));
+        return ;
+    };
+
+})();
