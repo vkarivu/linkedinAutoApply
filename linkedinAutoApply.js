@@ -14,15 +14,35 @@
     // Global flag to control execution
     window.stopJobClicks = false;
 
-    // Sleep function using Promises
+    async function clickElement(element, description) {
+        if (window.stopJobClicks) {
+                console.log("Execution stopped manually.");
+                return;
+            }
+    if (element) {
+        // Scroll the element into view
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await sleep(1000); // Wait for the scroll to complete
+
+        // Perform the click
+        element.click();
+        //await clickElement(element,"element")
+        console.log(`Clicked ${description}`);
+        return true;
+    } else {
+        console.log(`${description} not found.`);
+        return false;
+    }
+    }
 
 
 
     function findFirstVisibleElement() {
+
     // List of element selectors
     const elements = [
         "[id*='dialog-label-']",  // Dialog label elements
-        "[id*='jobs-apply-header']",  // Jobs apply header
+        "[class*='jobs-easy-apply-content'] [class*='flex-wrap'][id*='ember']",
         "[class*='artdeco-modal__content']",  // Modal content
         "[id='job-details'] > [class='job-details-module__content']",  // Job details content
         "[class='jobs-search-results-list__title-heading']"  // Job search results list title
@@ -52,7 +72,7 @@
 }
 
 
-    async function clickElement() {
+    async function clickRandomElement() {
         console.log("Rondom Click happening");
         let element = findFirstVisibleElement()
     const rect = element.getBoundingClientRect();
@@ -92,7 +112,7 @@
 
     const actions = [
     randomScroll,
-    clickElement,
+    clickRandomElement,
     randomHover,
     randomPause
 ];
@@ -106,10 +126,15 @@ async function chooseRandomAction() {
 }
 
 
-      function sleep(ms) {
+     async function sleep(ms) {
+         if (window.stopJobClicks) {
+                console.log("Execution stopped manually.");
+                return;
+            }
         chooseRandomAction()
         chooseRandomAction()
         const ms1 = Math.floor(Math.random() * 3000)+2000
+         // const ms1 = ms
         return new Promise(resolve => setTimeout(resolve, ms1));
     }
 
@@ -117,8 +142,6 @@ async function chooseRandomAction() {
 
 
 
-// Use the function where necessary
-chooseRandomAction();
 
 
 
@@ -131,7 +154,8 @@ console.log("Entered function handleEasyApplyPopup");
 
               const easyApplyButton = document.querySelector('button.jobs-apply-button');
         if (easyApplyButton) {
-            easyApplyButton.click();
+            //easyApplyButton.click();
+            await clickElement(easyApplyButton,"easyApplyButton")
             console.log("Clicked Easy Apply button.");
             await sleep(2000); // Wait for the popup to load
         } else {
@@ -154,16 +178,18 @@ console.log("Entered function handleEasyApplyPopup");
  console.log("handleEasyApplyPopup started");
                 // Check for any alert messages
                 while (true) {
-                    const alertMessage = document.querySelector('span.artdeco-inline-feedback__message');
-                    if (alertMessage) {
+                    //const alertMessage = document.querySelector('span.artdeco-inline-feedback__message');
+                    const dialogBox = document.querySelector('.jobs-easy-apply-modal'); // Change this based on the class or ID of your modal
+                    const alertMessage = dialogBox.querySelector('span.artdeco-inline-feedback__message');
+                    if (alertMessage ) {
                         alertCount++;
                         console.log(`Error message found (${alertCount} time(s)), waiting for 3 seconds before retrying.`);
-                        await sleep(3000); // Wait before trying again
+                        await sleep(2000); // Wait before trying again
 
                         // If alert message appears more than 3 times, cancel the current application
                         if (alertCount > 1) {
-                            console.log("Alert appeared more than 3 times, canceling the current application.");
-                            saveCrntApplication();
+                            console.log("Alert appeared more than 3 times, Saving/Canceling the current application.");
+                            await saveCrntApplication();
                             return;
                         }
                     } else {
@@ -173,7 +199,8 @@ console.log("Entered function handleEasyApplyPopup");
 
                 if (nextButton) {
                     nextButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    nextButton.click();
+                    //nextButton.click();
+                     await clickElement(nextButton,"nextButton")
                     console.log("Clicked Next/Review button.");
                     await sleep(3000); // Wait for the next step to load
                 } else {
@@ -196,7 +223,8 @@ console.log("Entered function handleEasyApplyPopup");
             const submitButton = document.querySelector('button[aria-label="Submit application"]');
             if (submitButton) {
                 submitButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                submitButton.click();
+                //submitButton.click();
+                 await clickElement(submitButton,"submitButton")
                 console.log("Clicked Submit button.");
                 await sleep(2000); // Wait for submission to complete
             }
@@ -205,7 +233,8 @@ console.log("Entered function handleEasyApplyPopup");
             const closeButton = document.querySelector('button.artdeco-modal__dismiss');
             if (closeButton) {
                 closeButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                closeButton.click();
+                //closeButton.click();
+                await clickElement(closeButton,"closeButton")
                 console.log("Closed the popup after submission.");
                 await sleep(2000); // Wait for the popup to close
             }
@@ -225,6 +254,7 @@ console.log("Entered function handleEasyApplyPopup");
     // Method to save the current application in case of error
     async function saveCrntApplication() {
         try {
+
             if (window.stopJobClicks) {
                 console.log("Execution stopped manually.");
                 return;
@@ -232,8 +262,8 @@ console.log("Entered function handleEasyApplyPopup");
             // Step 1: Click on the Cancel button (Dismiss)
             const cancelButton = document.querySelector('button[aria-label="Dismiss"]');
             if (cancelButton) {
-                cancelButton.click();
-                console.log("Clicked Cancel button (Dismiss).");
+               // cancelButton.click();
+                 await clickElement(cancelButton,"cancelButton")
                 await sleep(2000); // Wait for the confirmation modal to appear
             } else {
                 console.log("Cancel button not found.");
@@ -243,7 +273,9 @@ console.log("Entered function handleEasyApplyPopup");
             // Step 2: Wait for and click the 'Save' button in the confirmation dialog
             const saveButton = document.querySelector('button[data-control-name="save_application_btn"]');
             if (saveButton) {
-                saveButton.click();
+               // saveButton.click();
+                 await clickElement(saveButton,"saveButton")
+
                 console.log("Clicked Save button to save the application.");
                 await sleep(2000); // Wait for the save action to complete
             } else {
@@ -295,7 +327,8 @@ console.log("Entered function handleEasyApplyPopup");
             let nextPageButton = nextPage.querySelector('button');
             nextPageButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
             await sleep(1000); // Wait for scroll to complete
-            nextPageButton.click();
+            //nextPageButton.click();
+            await clickElement(nextPageButton,"nextPageButton")
             console.log("Clicked next page.");
             return true; // Successfully clicked next page
         } else {
@@ -312,7 +345,7 @@ console.log("Entered function handleEasyApplyPopup");
 
 async function checkBlockListCompany() {
     const blocklistCompanies = ['cognet', 'advance aero', 'jobot', 'flexton', 'infovision'];
-    
+    // Get the company name for the current job card
     const companyElement = document.querySelector('.job-details-jobs-unified-top-card__company-name a');
     const companyName = companyElement ? companyElement.textContent.toLowerCase().replace(/\s+/g, '').trim() : '';
 
@@ -380,7 +413,7 @@ const allKeywordsPresent = keywordList.every(keyword => jobDescriptionText.inclu
     // Function to click job cards in the left panel and trigger the Easy Apply process
   async function clickJobCardsAndApply() {
     // Declare blocklist companies
-
+console.log("SPD2");
 
     // Find the job list panel
     let jobListPanel = document.querySelector('.scaffold-layout__list-container');
@@ -389,11 +422,12 @@ const allKeywordsPresent = keywordList.every(keyword => jobDescriptionText.inclu
         console.log("Job list panel not found.");
         return;
     }
-
+console.log("SPD3");
     // Step 1: Scroll the left panel all the way to the bottom to load all jobs
     let lastScrollTop = jobListPanel.scrollTop;
     let currentScrollTop = jobListPanel.scrollTop;
 
+      console.log("SPD4");
     // Keep scrolling down until the scroll position stops changing (i.e., we've reached the bottom)
     while (lastScrollTop !== currentScrollTop) {
         jobListPanel.scrollTop += 500; // Scroll down by 500px at a time
@@ -404,6 +438,8 @@ const allKeywordsPresent = keywordList.every(keyword => jobDescriptionText.inclu
         await sleep(1000); // Wait for new jobs to load
     }
 
+      console.log("SPD5");
+
     // Now get the list of job cards in the panel
     let jobCards = document.querySelectorAll('.jobs-search-results__list-item');
 
@@ -412,6 +448,7 @@ const allKeywordsPresent = keywordList.every(keyword => jobDescriptionText.inclu
             console.log("Execution stopped manually.");
             break;
         }
+console.log("SPD6");
 
 
 
@@ -421,7 +458,8 @@ const allKeywordsPresent = keywordList.every(keyword => jobDescriptionText.inclu
         // Click on the job card
         const anchor = jobCards[i].querySelector('a.job-card-list__title');
         if (anchor) {
-            anchor.click();
+           // anchor.click();
+            await clickElement(anchor,"job ${i} in leftpanel")
             console.log(`Clicked job card anchor number ${i + 1}`);
         } else {
             console.log(`No anchor link found for job card at index ${i}`);
@@ -460,31 +498,30 @@ console.log("REached function handleEasyApplyPopup");
 
 
 
-    // Expose the functions to the global window object
-    window.startJobAutoApply = async function() {
-    window.stopJobClicks = false;  // Reset the stop flag
+    window.start = async function() {
+    window.stopJobClicks = false;
+        console.log("SPD1");
 
-    // Initial execution of clickJobCardsAndApply
     await clickJobCardsAndApply();
 
-    // Loop through pages and process job cards on each page
+
     while (!window.stopJobClicks) {
-        const hasNextPage = await goToNextPage();  // Check if there is a next page
+        const hasNextPage = await goToNextPage();
         if (hasNextPage) {
             console.log("Navigated to the next page, continuing with job applications.");
-            await sleep(2000);  // Wait for the next page to load
-            await clickJobCardsAndApply();  // Apply on the new page
+            await sleep(2000);
+            await clickJobCardsAndApply();
         } else {
             console.log("No more pages to process.");
-            break;  // Exit the loop if there are no more pages
+            break;
         }
     }
 
     console.log("Finished processing all pages or stopped manually.");
 };
 
-    window.stopJobAutoApply = function() {
-        window.stopJobClicks = true;  // Set the stop flag
+    window.stop = function() {
+        window.stopJobClicks = true;
     };
 
 })();
